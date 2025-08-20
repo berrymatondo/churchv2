@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Navigation } from "@/components/navigation"
-import { DataTable } from "@/components/data-table"
-import { LeafletMap } from "@/components/leaflet-map"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect } from "react";
+import { Navigation } from "@/components/navigation";
+import { DataTable } from "@/components/data-table";
+import { LeafletMap } from "@/components/leaflet-map";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -15,172 +21,190 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useToast } from "@/hooks/use-toast"
-import { useMobile } from "@/hooks/use-mobile"
-import { Plus, Map, MapPin, Building2 } from "lucide-react"
-import type { Eglise, Ville, CreateEgliseData, Departement } from "@/lib/types"
-import Link from "next/link"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { useMobile } from "@/hooks/use-mobile";
+import { Plus, Map, MapPin, Building2 } from "lucide-react";
+import type { Eglise, Ville, CreateEgliseData, Departement } from "@/lib/types";
+import Link from "next/link";
 
 export default function EglisesPage() {
-  const [eglises, setEglises] = useState<Eglise[]>([])
-  const [villes, setVilles] = useState<Ville[]>([])
-  const [departements, setDepartements] = useState<Departement[]>([])
-  const [selectedEglise, setSelectedEglise] = useState<Eglise | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [mobileModalOpen, setMobileModalOpen] = useState(false)
-  const [editingEglise, setEditingEglise] = useState<Eglise | null>(null)
+  const [eglises, setEglises] = useState<Eglise[]>([]);
+  const [villes, setVilles] = useState<Ville[]>([]);
+  const [departements, setDepartements] = useState<Departement[]>([]);
+  const [selectedEglise, setSelectedEglise] = useState<Eglise | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  const [editingEglise, setEditingEglise] = useState<Eglise | null>(null);
   const [formData, setFormData] = useState<CreateEgliseData>({
     nom: "",
     adresse: "",
     villeId: 0,
     latitude: undefined,
     longitude: undefined,
-  })
-  const { toast } = useToast()
-  const isMobile = useMobile()
+  });
+  const { toast } = useToast();
+  const isMobile = useMobile();
 
   const fetchData = async () => {
     try {
-      const [eglisesResponse, villesResponse, departementsResponse] = await Promise.all([
-        fetch("/api/eglises"),
-        fetch("/api/villes"),
-        fetch("/api/departements"),
-      ])
+      const [eglisesResponse, villesResponse, departementsResponse] =
+        await Promise.all([
+          fetch("/api/eglises"),
+          fetch("/api/villes"),
+          fetch("/api/departements"),
+        ]);
 
-      const [eglisesResult, villesResult, departementsResult] = await Promise.all([
-        eglisesResponse.json(),
-        villesResponse.json(),
-        departementsResponse.json(),
-      ])
+      const [eglisesResult, villesResult, departementsResult] =
+        await Promise.all([
+          eglisesResponse.json(),
+          villesResponse.json(),
+          departementsResponse.json(),
+        ]);
 
-      if (eglisesResult.success) setEglises(eglisesResult.data)
-      if (villesResult.success) setVilles(villesResult.data)
-      if (departementsResult.success) setDepartements(departementsResult.data)
+      if (eglisesResult.success) setEglises(eglisesResult.data);
+      if (villesResult.success) setVilles(villesResult.data);
+      if (departementsResult.success) setDepartements(departementsResult.data);
     } catch (error) {
       toast({
         title: "Erreur",
         description: "Impossible de charger les données",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
-      const url = editingEglise ? `/api/eglises/${editingEglise.id}` : "/api/eglises"
-      const method = editingEglise ? "PUT" : "POST"
+      const url = editingEglise
+        ? `/api/eglises/${editingEglise.id}`
+        : "/api/eglises";
+      const method = editingEglise ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
         toast({
           title: "Succès",
-          description: editingEglise ? "Église modifiée avec succès" : "Église créée avec succès",
-        })
-        setDialogOpen(false)
-        setMobileModalOpen(false)
-        setEditingEglise(null)
-        setFormData({ nom: "", adresse: "", villeId: 0, latitude: undefined, longitude: undefined })
-        fetchData()
+          description: editingEglise
+            ? "Église modifiée avec succès"
+            : "Église créée avec succès",
+        });
+        setDialogOpen(false);
+        setMobileModalOpen(false);
+        setEditingEglise(null);
+        setFormData({
+          nom: "",
+          adresse: "",
+          villeId: 0,
+          latitude: undefined,
+          longitude: undefined,
+        });
+        fetchData();
       } else {
         toast({
           title: "Erreur",
           description: result.error,
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Erreur",
         description: "Une erreur est survenue",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleEdit = (eglise: Eglise) => {
-    setEditingEglise(eglise)
+    setEditingEglise(eglise);
     setFormData({
       nom: eglise.nom,
       adresse: eglise.adresse,
       villeId: eglise.villeId,
       latitude: eglise.latitude,
       longitude: eglise.longitude,
-    })
-    setDialogOpen(true)
-  }
+    });
+    setDialogOpen(true);
+  };
 
   const handleDelete = async (eglise: Eglise) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette église ?")) return
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette église ?")) return;
 
     try {
       const response = await fetch(`/api/eglises/${eglise.id}`, {
         method: "DELETE",
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
         toast({
           title: "Succès",
           description: "Église supprimée avec succès",
-        })
-        fetchData()
+        });
+        fetchData();
       } else {
         toast({
           title: "Erreur",
           description: result.error,
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Erreur",
         description: "Une erreur est survenue",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleCoordinatesSelect = (lat: number, lng: number) => {
     setFormData({
       ...formData,
       latitude: Number.parseFloat(lat.toFixed(6)),
       longitude: Number.parseFloat(lng.toFixed(6)),
-    })
+    });
     toast({
       title: "Coordonnées sélectionnées",
       description: `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`,
-    })
-  }
+    });
+  };
 
   const handleRowClick = (eglise: Eglise) => {
-    setSelectedEglise(eglise)
+    setSelectedEglise(eglise);
     if (isMobile) {
-      setMobileModalOpen(true)
+      setMobileModalOpen(true);
     }
-  }
+  };
 
   const columns = [
     { key: "id", label: "ID" },
@@ -191,17 +215,17 @@ export default function EglisesPage() {
       key: "departements_count",
       label: "Départements",
       render: (value: any, item: Eglise) => {
-        const count = departements.filter((d) => d.egliseId === item.id).length
+        const count = departements.filter((d) => d.egliseId === item.id).length;
         return (
           <div className="flex items-center space-x-1">
             <span className="text-sm font-medium text-blue-600">
               {count} département{count !== 1 ? "s" : ""}
             </span>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 
   if (loading) {
     return (
@@ -211,7 +235,7 @@ export default function EglisesPage() {
           <div className="text-center">Chargement...</div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -222,7 +246,9 @@ export default function EglisesPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">Gestion des Églises</h1>
-              <p className="text-muted-foreground">Gérez les églises et leur localisation</p>
+              <p className="text-muted-foreground">
+                Gérez les églises et leur localisation
+              </p>
             </div>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -246,7 +272,9 @@ export default function EglisesPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Liste des Églises</CardTitle>
-                    <CardDescription>Cliquez sur une ligne pour voir les détails</CardDescription>
+                    <CardDescription>
+                      Cliquez sur une ligne pour voir les détails
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <DataTable
@@ -273,28 +301,43 @@ export default function EglisesPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <h3 className="font-semibold text-lg">{selectedEglise.nom}</h3>
-                        <p className="text-sm text-muted-foreground">{selectedEglise.adresse}</p>
+                        <h3 className="font-semibold text-lg">
+                          {selectedEglise.nom}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Ville: {selectedEglise.ville?.nom} ({selectedEglise.ville?.pays?.nom})
+                          {selectedEglise.adresse}
                         </p>
-                        {selectedEglise.latitude && selectedEglise.longitude && (
-                          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            <span>
-                              {selectedEglise.latitude.toFixed(4)}, {selectedEglise.longitude.toFixed(4)}
-                            </span>
-                          </div>
-                        )}
+                        <p className="text-sm text-muted-foreground">
+                          Ville: {selectedEglise.ville?.nom} (
+                          {selectedEglise.ville?.pays?.nom})
+                        </p>
+                        {selectedEglise.latitude &&
+                          selectedEglise.longitude && (
+                            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                              <MapPin className="h-3 w-3" />
+                              <span>
+                                {selectedEglise.latitude.toFixed(4)},{" "}
+                                {selectedEglise.longitude.toFixed(4)}
+                              </span>
+                            </div>
+                          )}
                       </div>
 
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium">
-                            Départements ({departements.filter((d) => d.egliseId === selectedEglise.id).length})
+                            Départements (
+                            {
+                              departements.filter(
+                                (d) => d.egliseId === selectedEglise.id
+                              ).length
+                            }
+                            )
                           </h4>
                           <Button size="sm" variant="outline" asChild>
-                            <Link href={`/departements?eglise=${selectedEglise.id}`}>
+                            <Link
+                              href={`/departements?eglise=${selectedEglise.id}`}
+                            >
                               <Plus className="h-3 w-3 mr-1" />
                               Ajouter
                             </Link>
@@ -311,14 +354,22 @@ export default function EglisesPage() {
                               >
                                 <div className="flex items-center justify-between">
                                   <div>
-                                    <p className="font-medium text-sm">{departement.nom}</p>
-                                    <p className="text-xs text-muted-foreground">Acronyme: {departement.acronyme}</p>
+                                    <p className="font-medium text-sm">
+                                      {departement.nom}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Acronyme: {departement.acronyme}
+                                    </p>
                                   </div>
-                                  <div className="text-xs text-muted-foreground">ID: {departement.id}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    ID: {departement.id}
+                                  </div>
                                 </div>
                               </Link>
                             ))}
-                          {departements.filter((d) => d.egliseId === selectedEglise.id).length === 0 && (
+                          {departements.filter(
+                            (d) => d.egliseId === selectedEglise.id
+                          ).length === 0 && (
                             <p className="text-sm text-muted-foreground text-center py-4">
                               Aucun département dans cette église
                             </p>
@@ -330,7 +381,9 @@ export default function EglisesPage() {
                 ) : (
                   <Card>
                     <CardContent className="flex items-center justify-center h-48">
-                      <p className="text-muted-foreground">Sélectionnez une église pour voir ses détails</p>
+                      <p className="text-muted-foreground">
+                        Sélectionnez une église pour voir ses détails
+                      </p>
                     </CardContent>
                   </Card>
                 )}
@@ -339,80 +392,114 @@ export default function EglisesPage() {
           </TabsContent>
 
           <TabsContent value="map">
-            <LeafletMap eglises={eglises.filter((e) => e.latitude && e.longitude)} height="600px" />
+            <LeafletMap
+              eglises={eglises.filter((e) => e.latitude && e.longitude)}
+              height="600px"
+            />
           </TabsContent>
         </Tabs>
 
         <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
-          <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Détails de l'Église</DialogTitle>
+              <DialogDescription>
+                Informations et départements de l'église sélectionnée
+              </DialogDescription>
             </DialogHeader>
             {selectedEglise && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Nom:</span>
-                    <span>{selectedEglise.nom}</span>
+                <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">
+                      Nom:
+                    </span>
+                    <span className="font-semibold">{selectedEglise.nom}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Adresse:</span>
-                    <span className="text-right text-sm">{selectedEglise.adresse}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">
+                      Adresse:
+                    </span>
+                    <span className="text-right text-sm font-medium">
+                      {selectedEglise.adresse}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Ville:</span>
-                    <span>{selectedEglise.ville?.nom}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">
+                      Ville:
+                    </span>
+                    <span className="font-medium">
+                      {selectedEglise.ville?.nom}
+                    </span>
                   </div>
                   {selectedEglise.latitude && selectedEglise.longitude && (
-                    <div className="flex justify-between">
-                      <span className="font-medium">Coordonnées:</span>
-                      <span className="text-sm">
-                        {selectedEglise.latitude.toFixed(4)}, {selectedEglise.longitude.toFixed(4)}
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-muted-foreground">
+                        Coordonnées:
+                      </span>
+                      <span className="text-sm font-mono">
+                        {selectedEglise.latitude.toFixed(4)},{" "}
+                        {selectedEglise.longitude.toFixed(4)}
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span className="font-medium">Départements:</span>
-                    <span className="text-blue-600 font-medium">
-                      {departements.filter((d) => d.egliseId === selectedEglise.id).length}
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">
+                      Départements:
+                    </span>
+                    <span className="text-blue-600 font-semibold text-lg">
+                      {
+                        departements.filter(
+                          (d) => d.egliseId === selectedEglise.id
+                        ).length
+                      }
                     </span>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h4 className="font-medium mb-3">Départements de cette église</h4>
-                  {departements.filter((d) => d.egliseId === selectedEglise.id).length > 0 ? (
-                    <div className="space-y-2">
+                  <h4 className="font-semibold mb-3 text-lg">
+                    Départements de cette église
+                  </h4>
+                  {departements.filter((d) => d.egliseId === selectedEglise.id)
+                    .length > 0 ? (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
                       {departements
                         .filter((d) => d.egliseId === selectedEglise.id)
                         .map((departement) => (
                           <div
                             key={departement.id}
-                            className="p-2 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                            className="p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors active:bg-muted/80"
                             onClick={() => {
-                              setMobileModalOpen(false)
-                              window.location.href = `/departements?highlight=${departement.id}`
+                              setMobileModalOpen(false);
+                              window.location.href = `/departements?highlight=${departement.id}`;
                             }}
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium text-sm">{departement.nom}</p>
-                                <p className="text-xs text-muted-foreground">Acronyme: {departement.acronyme}</p>
+                                <p className="font-medium">{departement.nom}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Acronyme: {departement.acronyme}
+                                </p>
                               </div>
-                              <div className="text-xs text-muted-foreground">→</div>
+                              <div className="text-sm text-muted-foreground">
+                                →
+                              </div>
                             </div>
                           </div>
                         ))}
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-muted-foreground">Aucun département dans cette église</div>
+                    <div className="text-center py-6 text-muted-foreground bg-muted/30 rounded-lg">
+                      Aucun département dans cette église
+                    </div>
                   )}
                   <Button
                     className="w-full mt-4 bg-transparent"
                     variant="outline"
                     onClick={() => {
-                      setMobileModalOpen(false)
-                      window.location.href = `/departements?eglise=${selectedEglise.id}`
+                      setMobileModalOpen(false);
+                      window.location.href = `/departements?eglise=${selectedEglise.id}`;
                     }}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -421,15 +508,28 @@ export default function EglisesPage() {
                 </div>
               </div>
             )}
+            <DialogFooter className="mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setMobileModalOpen(false)}
+                className="w-full"
+              >
+                Fermer
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingEglise ? "Modifier l'église" : "Ajouter une église"}</DialogTitle>
+              <DialogTitle>
+                {editingEglise ? "Modifier l'église" : "Ajouter une église"}
+              </DialogTitle>
               <DialogDescription>
-                {editingEglise ? "Modifiez les informations de l'église" : "Ajoutez une nouvelle église"}
+                {editingEglise
+                  ? "Modifiez les informations de l'église"
+                  : "Ajoutez une nouvelle église"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -441,7 +541,9 @@ export default function EglisesPage() {
                       <Input
                         id="nom"
                         value={formData.nom}
-                        onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, nom: e.target.value })
+                        }
                         placeholder="Ex: Église Évangélique"
                         required
                       />
@@ -450,7 +552,12 @@ export default function EglisesPage() {
                       <Label htmlFor="ville">Ville</Label>
                       <Select
                         value={formData.villeId.toString()}
-                        onValueChange={(value) => setFormData({ ...formData, villeId: Number.parseInt(value) })}
+                        onValueChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            villeId: Number.parseInt(value),
+                          })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionnez une ville" />
@@ -470,7 +577,9 @@ export default function EglisesPage() {
                     <Textarea
                       id="adresse"
                       value={formData.adresse}
-                      onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, adresse: e.target.value })
+                      }
                       placeholder="Ex: 15 Rue de la Paix, 75001 Paris"
                       required
                     />
@@ -486,7 +595,9 @@ export default function EglisesPage() {
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            latitude: e.target.value ? Number.parseFloat(e.target.value) : undefined,
+                            latitude: e.target.value
+                              ? Number.parseFloat(e.target.value)
+                              : undefined,
                           })
                         }
                         placeholder="Ex: 48.8566"
@@ -502,7 +613,9 @@ export default function EglisesPage() {
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            longitude: e.target.value ? Number.parseFloat(e.target.value) : undefined,
+                            longitude: e.target.value
+                              ? Number.parseFloat(e.target.value)
+                              : undefined,
                           })
                         }
                         placeholder="Ex: 2.3522"
@@ -519,22 +632,30 @@ export default function EglisesPage() {
                     height="300px"
                     showControls={false}
                     center={
-                      formData.latitude && formData.longitude ? [formData.latitude, formData.longitude] : undefined
+                      formData.latitude && formData.longitude
+                        ? [formData.latitude, formData.longitude]
+                        : undefined
                     }
                     zoom={formData.latitude && formData.longitude ? 15 : 6}
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
                   Annuler
                 </Button>
-                <Button type="submit">{editingEglise ? "Modifier" : "Ajouter"}</Button>
+                <Button type="submit">
+                  {editingEglise ? "Modifier" : "Ajouter"}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </div>
     </div>
-  )
+  );
 }

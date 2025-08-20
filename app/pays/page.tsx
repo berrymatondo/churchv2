@@ -337,42 +337,45 @@ export default function PaysPage() {
         </Dialog>
 
         <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
-          <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Détails du Pays</DialogTitle>
+              <DialogDescription>Informations et villes du pays sélectionné</DialogDescription>
             </DialogHeader>
             {selectedPays && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Nom:</span>
-                    <span>{selectedPays.nom}</span>
+                <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">Nom:</span>
+                    <span className="font-semibold">{selectedPays.nom}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Continent:</span>
-                    <span>{continents.find((c) => c.id === selectedPays.continentId)?.nom || "N/A"}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">Continent:</span>
+                    <span className="font-medium">
+                      {continents.find((c) => c.id === selectedPays.continentId)?.nom || "N/A"}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Nombre de villes:</span>
-                    <span className="text-blue-600 font-medium">{villesForSelectedPays.length}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">Nombre de villes:</span>
+                    <span className="text-blue-600 font-semibold text-lg">{villesForSelectedPays.length}</span>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h4 className="font-medium mb-3">Villes en {selectedPays.nom}</h4>
+                  <h4 className="font-semibold mb-3 text-lg">Villes en {selectedPays.nom}</h4>
                   {villesForSelectedPays.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
                       {villesForSelectedPays.map((ville) => (
                         <div
                           key={ville.id}
-                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors active:bg-muted/80"
                           onClick={() => {
                             setMobileModalOpen(false)
                             window.location.href = `/villes?highlight=${ville.id}`
                           }}
                         >
                           <div className="flex items-center space-x-3">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                             <span className="font-medium">{ville.name}</span>
                           </div>
                           <div className="text-sm text-muted-foreground">→</div>
@@ -380,7 +383,9 @@ export default function PaysPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-muted-foreground">Aucune ville dans ce pays</div>
+                    <div className="text-center py-6 text-muted-foreground bg-muted/30 rounded-lg">
+                      Aucune ville dans ce pays
+                    </div>
                   )}
                   <Button
                     className="w-full mt-4 bg-transparent"
@@ -396,6 +401,11 @@ export default function PaysPage() {
                 </div>
               </div>
             )}
+            <DialogFooter className="mt-6">
+              <Button variant="outline" onClick={() => setMobileModalOpen(false)} className="w-full">
+                Fermer
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 

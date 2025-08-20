@@ -1,12 +1,18 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Navigation } from "@/components/navigation"
-import { DataTable } from "@/components/data-table"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect } from "react";
+import { Navigation } from "@/components/navigation";
+import { DataTable } from "@/components/data-table";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,154 +20,165 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { useMobile } from "@/hooks/use-mobile"
-import { Plus, MapPin, Building2 } from "lucide-react"
-import Link from "next/link"
-import type { Ville, Pays, Eglise, CreateVilleData } from "@/lib/types"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useMobile } from "@/hooks/use-mobile";
+import { Plus, MapPin, Building2 } from "lucide-react";
+import Link from "next/link";
+import type { Ville, Pays, Eglise, CreateVilleData } from "@/lib/types";
 
 export default function VillesPage() {
-  const [villes, setVilles] = useState<Ville[]>([])
-  const [pays, setPays] = useState<Pays[]>([])
-  const [eglises, setEglises] = useState<Eglise[]>([])
-  const [selectedVille, setSelectedVille] = useState<Ville | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [mobileModalOpen, setMobileModalOpen] = useState(false)
-  const [editingVille, setEditingVille] = useState<Ville | null>(null)
-  const [formData, setFormData] = useState<CreateVilleData>({ nom: "", paysId: 0 })
-  const { toast } = useToast()
-  const isMobile = useMobile()
+  const [villes, setVilles] = useState<Ville[]>([]);
+  const [pays, setPays] = useState<Pays[]>([]);
+  const [eglises, setEglises] = useState<Eglise[]>([]);
+  const [selectedVille, setSelectedVille] = useState<Ville | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  const [editingVille, setEditingVille] = useState<Ville | null>(null);
+  const [formData, setFormData] = useState<CreateVilleData>({
+    nom: "",
+    paysId: 0,
+  });
+  const { toast } = useToast();
+  const isMobile = useMobile();
 
   const fetchData = async () => {
     try {
-      const [villesResponse, paysResponse, eglisesResponse] = await Promise.all([
-        fetch("/api/villes"),
-        fetch("/api/pays"),
-        fetch("/api/eglises"),
-      ])
+      const [villesResponse, paysResponse, eglisesResponse] = await Promise.all(
+        [fetch("/api/villes"), fetch("/api/pays"), fetch("/api/eglises")]
+      );
 
       const [villesResult, paysResult, eglisesResult] = await Promise.all([
         villesResponse.json(),
         paysResponse.json(),
         eglisesResponse.json(),
-      ])
+      ]);
 
-      if (villesResult.success) setVilles(villesResult.data)
-      if (paysResult.success) setPays(paysResult.data)
-      if (eglisesResult.success) setEglises(eglisesResult.data)
+      if (villesResult.success) setVilles(villesResult.data);
+      if (paysResult.success) setPays(paysResult.data);
+      if (eglisesResult.success) setEglises(eglisesResult.data);
     } catch (error) {
       toast({
         title: "Erreur",
         description: "Impossible de charger les données",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
-      const url = editingVille ? `/api/villes/${editingVille.id}` : "/api/villes"
-      const method = editingVille ? "PUT" : "POST"
+      const url = editingVille
+        ? `/api/villes/${editingVille.id}`
+        : "/api/villes";
+      const method = editingVille ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
         toast({
           title: "Succès",
-          description: editingVille ? "Ville modifiée avec succès" : "Ville créée avec succès",
-        })
-        setDialogOpen(false)
-        setMobileModalOpen(false)
-        setEditingVille(null)
-        setFormData({ nom: "", paysId: 0 })
-        fetchData()
+          description: editingVille
+            ? "Ville modifiée avec succès"
+            : "Ville créée avec succès",
+        });
+        setDialogOpen(false);
+        setMobileModalOpen(false);
+        setEditingVille(null);
+        setFormData({ nom: "", paysId: 0 });
+        fetchData();
       } else {
         toast({
           title: "Erreur",
           description: result.error,
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Erreur",
         description: "Une erreur est survenue",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleEdit = (ville: Ville) => {
-    setEditingVille(ville)
-    setFormData({ nom: ville.nom, paysId: ville.paysId })
-    setDialogOpen(true)
-  }
+    setEditingVille(ville);
+    setFormData({ nom: ville.nom, paysId: ville.paysId });
+    setDialogOpen(true);
+  };
 
   const handleDelete = async (ville: Ville) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette ville ?")) return
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette ville ?")) return;
 
     try {
       const response = await fetch(`/api/villes/${ville.id}`, {
         method: "DELETE",
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
         toast({
           title: "Succès",
           description: "Ville supprimée avec succès",
-        })
-        fetchData()
+        });
+        fetchData();
       } else {
         toast({
           title: "Erreur",
           description: result.error,
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
       toast({
         title: "Erreur",
         description: "Une erreur est survenue",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleRowClick = (ville: Ville) => {
-    setSelectedVille(ville)
+    setSelectedVille(ville);
     if (isMobile) {
-      setMobileModalOpen(true)
+      setMobileModalOpen(true);
     }
-  }
+  };
 
   const getEglisesCount = (villeId: number) => {
-    return eglises.filter((eglise) => eglise.villeId === villeId).length
-  }
+    return eglises.filter((eglise) => eglise.villeId === villeId).length;
+  };
 
   const getEglisesForVille = (villeId: number) => {
-    return eglises.filter((eglise) => eglise.villeId === villeId)
-  }
+    return eglises.filter((eglise) => eglise.villeId === villeId);
+  };
 
   const columns = [
     { key: "id", label: "ID" },
@@ -170,9 +187,13 @@ export default function VillesPage() {
     {
       key: "eglises_count",
       label: "Églises",
-      render: (_: any, item: Ville) => <span className="font-medium text-blue-600">{getEglisesCount(item.id)}</span>,
+      render: (_: any, item: Ville) => (
+        <span className="font-medium text-blue-600">
+          {getEglisesCount(item.id)}
+        </span>
+      ),
     },
-  ]
+  ];
 
   if (loading) {
     return (
@@ -182,7 +203,7 @@ export default function VillesPage() {
           <div className="text-center">Chargement...</div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -230,12 +251,17 @@ export default function VillesPage() {
                 {selectedVille ? (
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-semibold text-lg">{selectedVille.nom}</h3>
+                      <h3 className="font-semibold text-lg">
+                        {selectedVille.nom}
+                      </h3>
                       <p className="text-muted-foreground">
-                        Pays: {pays.find((p) => p.id === selectedVille.paysId)?.nom || "Non trouvé"}
+                        Pays:{" "}
+                        {pays.find((p) => p.id === selectedVille.paysId)?.nom ||
+                          "Non trouvé"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {getEglisesCount(selectedVille.id)} église{getEglisesCount(selectedVille.id) !== 1 ? "s" : ""}
+                        {getEglisesCount(selectedVille.id)} église
+                        {getEglisesCount(selectedVille.id) !== 1 ? "s" : ""}
                       </p>
                     </div>
 
@@ -253,17 +279,26 @@ export default function VillesPage() {
                               className="block p-3 border rounded-lg hover:bg-muted transition-colors"
                             >
                               <div className="font-medium">{eglise.nom}</div>
-                              <div className="text-sm text-muted-foreground">{eglise.adresse}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {eglise.adresse}
+                              </div>
                             </Link>
                           ))
                         ) : (
-                          <p className="text-muted-foreground text-sm">Aucune église dans cette ville</p>
+                          <p className="text-muted-foreground text-sm">
+                            Aucune église dans cette ville
+                          </p>
                         )}
                       </div>
                       <Button
                         className="w-full mt-3 bg-transparent"
                         variant="outline"
-                        onClick={() => window.open(`/eglises?ville=${selectedVille.id}`, "_blank")}
+                        onClick={() =>
+                          window.open(
+                            `/eglises?ville=${selectedVille.id}`,
+                            "_blank"
+                          )
+                        }
                       >
                         <Plus className="mr-2 h-4 w-4" />
                         Ajouter une église
@@ -271,7 +306,9 @@ export default function VillesPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">Sélectionnez une ville pour voir ses détails</p>
+                  <p className="text-muted-foreground">
+                    Sélectionnez une ville pour voir ses détails
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -281,9 +318,13 @@ export default function VillesPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingVille ? "Modifier la ville" : "Ajouter une ville"}</DialogTitle>
+              <DialogTitle>
+                {editingVille ? "Modifier la ville" : "Ajouter une ville"}
+              </DialogTitle>
               <DialogDescription>
-                {editingVille ? "Modifiez les informations de la ville" : "Ajoutez une nouvelle ville"}
+                {editingVille
+                  ? "Modifiez les informations de la ville"
+                  : "Ajoutez une nouvelle ville"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
@@ -293,7 +334,9 @@ export default function VillesPage() {
                   <Input
                     id="nom"
                     value={formData.nom}
-                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nom: e.target.value })
+                    }
                     placeholder="Ex: Paris"
                     required
                   />
@@ -302,7 +345,12 @@ export default function VillesPage() {
                   <Label htmlFor="pays">Pays</Label>
                   <Select
                     value={formData.paysId.toString()}
-                    onValueChange={(value) => setFormData({ ...formData, paysId: Number.parseInt(value) })}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        paysId: Number.parseInt(value),
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez un pays" />
@@ -318,64 +366,90 @@ export default function VillesPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
                   Annuler
                 </Button>
-                <Button type="submit">{editingVille ? "Modifier" : "Ajouter"}</Button>
+                <Button type="submit">
+                  {editingVille ? "Modifier" : "Ajouter"}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
 
         <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
-          <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Détails de la Ville</DialogTitle>
+              <DialogDescription>
+                Informations et églises de la ville sélectionnée
+              </DialogDescription>
             </DialogHeader>
             {selectedVille && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Nom:</span>
-                    <span>{selectedVille.nom}</span>
+                <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">
+                      Nom:
+                    </span>
+                    <span className="font-semibold">{selectedVille.nom}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Pays:</span>
-                    <span>{pays.find((p) => p.id === selectedVille.paysId)?.nom || "Non trouvé"}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">
+                      Pays:
+                    </span>
+                    <span className="font-medium">
+                      {pays.find((p) => p.id === selectedVille.paysId)?.nom ||
+                        "Non trouvé"}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Nombre d'églises:</span>
-                    <span className="text-blue-600 font-medium">{getEglisesCount(selectedVille.id)}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-muted-foreground">
+                      Nombre d'églises:
+                    </span>
+                    <span className="text-blue-600 font-semibold text-lg">
+                      {getEglisesCount(selectedVille.id)}
+                    </span>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h4 className="font-medium mb-3">Églises de cette ville</h4>
+                  <h4 className="font-semibold mb-3 text-lg">
+                    Églises de cette ville
+                  </h4>
                   {getEglisesForVille(selectedVille.id).length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
                       {getEglisesForVille(selectedVille.id).map((eglise) => (
                         <div
                           key={eglise.id}
-                          className="p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                          className="p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors active:bg-muted/80"
                           onClick={() => {
-                            setMobileModalOpen(false)
-                            window.location.href = `/eglises?highlight=${eglise.id}`
+                            setMobileModalOpen(false);
+                            window.location.href = `/eglises?highlight=${eglise.id}`;
                           }}
                         >
                           <div className="font-medium">{eglise.nom}</div>
-                          <div className="text-sm text-muted-foreground">{eglise.adresse}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {eglise.adresse}
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-muted-foreground">Aucune église dans cette ville</div>
+                    <div className="text-center py-6 text-muted-foreground bg-muted/30 rounded-lg">
+                      Aucune église dans cette ville
+                    </div>
                   )}
                   <Button
                     className="w-full mt-4 bg-transparent"
                     variant="outline"
                     onClick={() => {
-                      setMobileModalOpen(false)
-                      window.location.href = `/eglises?ville=${selectedVille.id}`
+                      setMobileModalOpen(false);
+                      window.location.href = `/eglises?ville=${selectedVille.id}`;
                     }}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -384,9 +458,18 @@ export default function VillesPage() {
                 </div>
               </div>
             )}
+            <DialogFooter className="mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setMobileModalOpen(false)}
+                className="w-full"
+              >
+                Fermer
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
     </div>
-  )
+  );
 }
